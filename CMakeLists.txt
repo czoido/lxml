@@ -12,23 +12,6 @@ find_program(CYTHON_EXECUTABLE NAMES cython cython3 cython.exe
     REQUIRED
 )
 
-# On Windows, Python3::Module may not carry python3XX.lib for all Python distributions
-# (e.g. NuGet ARM64). Locate it explicitly next to python.exe or in libs/ beside it,
-# using NO_DEFAULT_PATH so we never pick up an unrelated system Python library.
-if(WIN32)
-    string(CONCAT _py_lib_name
-        "python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
-    find_library(Python3_IMPORT_LIB
-        NAMES ${_py_lib_name}
-        HINTS "${_py_bin_dir}" "${_py_bin_dir}/libs" "${_py_bin_dir}/../libs"
-        NO_DEFAULT_PATH
-    )
-    if(Python3_IMPORT_LIB)
-        message(STATUS "Python3 import lib (explicit): ${Python3_IMPORT_LIB}")
-    else()
-        message(WARNING "Python3 import lib not found next to executable; linker may fail on ARM64")
-    endif()
-endif()
 
 set(LXML_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/lxml)
 
@@ -71,9 +54,6 @@ function(cython_add_module target pyx_file)
     target_link_libraries(${target} PRIVATE LibXml2::LibXml2 LibXslt::LibXslt)
     if(TARGET LibXslt::LibExslt)
         target_link_libraries(${target} PRIVATE LibXslt::LibExslt)
-    endif()
-    if(WIN32 AND Python3_IMPORT_LIB)
-        target_link_libraries(${target} PRIVATE ${Python3_IMPORT_LIB})
     endif()
     # Cython-generated code uses deprecated symbols and implicit function declarations
     # that clang 16+ treats as hard errors in C99 mode regardless of -w.
