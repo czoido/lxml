@@ -1,2 +1,2 @@
 [platform_tool_requires]
-cmake/[>=3.15]:cmake
+cmake/4.3.2
