@@ -12,7 +12,7 @@ class LxmlConan(ConanFile):
         cmake_layout(self, src_folder="..")
 
     def requirements(self):
-        self.requires("libxslt/1.1.43")
+        self.requires("libxslt/1.1.45")
 
     def build(self):
         cmake = CMake(self)
