@@ -47,7 +47,7 @@ rebuild-sdist: require-cython
 	$(MAKE) dist/lxml-$(LXMLVERSION).tar.gz
 
 dist/lxml-$(LXMLVERSION).tar.gz:
-	$(PYTHON) -m build --sdist --no-isolation
+	$(PYTHON) -m build --sdist
 
 sdist: dist/lxml-$(LXMLVERSION).tar.gz
 
