@@ -14,6 +14,9 @@ class LxmlConan(ConanFile):
     def requirements(self):
         self.requires("libxslt/1.1.45")
 
+    def configure(self):
+        self.options["libxslt"].profiler = True
+
     def build(self):
         cmake = CMake(self)
         cmake.configure()
