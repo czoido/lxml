@@ -90,7 +90,7 @@ test_build: build
 	$(PYTHON) test.py $(TESTFLAGS) $(TESTOPTS)
 
 test_inplace:
-	$(PYTHON) test.py $(TESTFLAGS) $(TESTOPTS)
+	$(PYTHON) test.py --no-src $(TESTFLAGS) $(TESTOPTS)
 
 valgrind_test_inplace: inplace
 	valgrind --tool=memcheck --leak-check=full --num-callers=30 --suppressions=valgrind-python.supp \

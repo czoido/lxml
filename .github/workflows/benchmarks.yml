@@ -28,6 +28,7 @@ permissions:
 jobs:
   benchmarks:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     # The benchmarks are currently inconclusive and take a very long time to run.
     #if: false
