@@ -84,4 +84,9 @@ cython_add_module(objectify ${LXML_SRC_DIR}/objectify.pyx)
 # objectify.c includes etree_api.h, generated as a byproduct of the etree Cython step
 add_dependencies(objectify etree)
 
+# _testlock: RW-lock test extension (no libxml2/libxslt deps needed)
+cython_add_module(_testlock ${LXML_SRC_DIR}/tests/_testlock.pyx)
+target_compile_definitions(_testlock PRIVATE LXML_LOCK_PERFORMANCE=1)
+
 install(TARGETS etree objectify DESTINATION lxml)
+install(TARGETS _testlock DESTINATION lxml/tests)
