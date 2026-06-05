@@ -2,6 +2,7 @@
 requires = [
     "conan-py-build @ git+https://github.com/czoido/conan-py-build.git@deploy-to-conan-libs",
     "Cython>=3.2.4",
+    "cmake",
 ]
 build-backend = "conan_py_build.build"
 
@@ -15,6 +16,7 @@ requires-python = ">=3.9"
 
 [tool.conan-py-build]
 conanfile-path = "conan"
+extra-profile = "conan/platform_cmake.profile"
 
 [tool.conan-py-build.wheel]
 packages = ["src/lxml"]
