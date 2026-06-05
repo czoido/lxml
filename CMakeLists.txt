@@ -55,11 +55,19 @@ function(cython_add_module target pyx_file)
     endif()
     # Cython-generated code uses deprecated symbols and implicit function declarations
     # that clang 16+ treats as hard errors in C99 mode regardless of -w.
-    target_compile_options(${target} PRIVATE
-        -Wno-implicit-function-declaration
-        -Wno-int-conversion
-        -Wno-deprecated-declarations
-    )
+    if(MSVC)
+        target_compile_options(${target} PRIVATE
+            /wd4996  # deprecated declarations
+            /wd4244  # conversion, possible loss of data
+            /wd4267  # size_t -> int conversion
+        )
+    else()
+        target_compile_options(${target} PRIVATE
+            -Wno-implicit-function-declaration
+            -Wno-int-conversion
+            -Wno-deprecated-declarations
+        )
+    endif()
     set_target_properties(${target} PROPERTIES OUTPUT_NAME ${module_name})
     if(APPLE)
         set_target_properties(${target} PROPERTIES
