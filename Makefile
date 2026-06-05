@@ -89,8 +89,8 @@ wheel_static:
 test_build: build
 	$(PYTHON) test.py $(TESTFLAGS) $(TESTOPTS)
 
-test_inplace: inplace
-	$(PYTHON) test.py $(TESTFLAGS) $(TESTOPTS) $(CYTHON_WITH_COVERAGE)
+test_inplace:
+	$(PYTHON) test.py $(TESTFLAGS) $(TESTOPTS)
 
 valgrind_test_inplace: inplace
 	valgrind --tool=memcheck --leak-check=full --num-callers=30 --suppressions=valgrind-python.supp \

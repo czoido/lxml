@@ -15,11 +15,6 @@ if [ -z "${OS_NAME##ubuntu*}" ]; then
   sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
   sudo apt-get update -y -q
   sudo apt-get install -y -q ccache gcc-$GCC_VERSION || exit 1
-  if [ -n "${STATIC_DEPS##true}" ]; then
-    # Ubuntu 22.04 has libxml2 2.9.13, Ubuntu 24.04 has 2.9.14
-    sudo apt-get install -y -q "libxml2=2.9.14*" "libxml2-dev=2.9.14*" libxslt1.1 libxslt1-dev  \
-    ||  sudo apt-get install -y -q "libxml2=2.9.13*" "libxml2-dev=2.9.13*" libxslt1.1 libxslt1-dev
-  fi
   sudo /usr/sbin/update-ccache-symlinks
   echo "/usr/lib/ccache" >> $GITHUB_PATH # export ccache to path
 
@@ -55,7 +50,7 @@ ccache -s || true
 
 # Install python requirements
 echo "Installing requirements [python]"
-python -m pip install -U pip setuptools
+python -m pip install -U pip
 
 if [ -z "${PYTHON_VERSION##*-dev}" ];
   then CYTHON_COMPILE=false  python -m pip install https://github.com/cython/cython/archive/master.zip;
@@ -69,19 +64,15 @@ if [[ "$COVERAGE" == "true" ]]; then
   python -m pip install "coverage<5" || exit 1
 fi
 
-# Build
+# Build and install
 GITHUB_API_TOKEN="${SAVED_GITHUB_API_TOKEN}" \
       CFLAGS="$CFLAGS $TEST_CFLAGS $EXTRA_CFLAGS" \
       LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS" \
-      python -u setup.py build_ext --inplace --warnings -j7 \
-      $(if [[ "$COVERAGE" == "true" ]]; then echo -n " --with-coverage"; fi ) \
-      || exit 1
+      python -m pip install . || exit 1
 
 # Run tests
 echo "Running the tests ..."
 GITHUB_API_TOKEN="${SAVED_GITHUB_API_TOKEN}" \
-      CFLAGS="$TEST_CFLAGS $EXTRA_CFLAGS" \
-      LDFLAGS="$LDFLAGS $EXTRA_LDFLAGS" \
       PYTHONUNBUFFERED=x \
       make test || exit 1
 
