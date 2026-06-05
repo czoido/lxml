@@ -26,10 +26,13 @@ if [ -z "${OS_NAME##ubuntu*}" ]; then
   EXTRA_CFLAGS="-Wall -Wextra -DLXML_DEBUG_ATOMICS=1"
 
 elif [ -z "${OS_NAME##macos*}" ]; then
-  export CC="clang -Wno-deprecated-declarations"
-  TEST_CFLAGS="-Og -g -fPIC -arch arm64 -arch x86_64"
-  EXTRA_LDFLAGS="-arch arm64 -arch x86_64"
-  EXTRA_CFLAGS="-Wall -Wextra -arch arm64 -arch x86_64 -DLXML_DEBUG_ATOMICS=1"
+  # CC must be just the compiler binary — conan-py-build's compiler detection
+  # fails if CC contains extra flags.  Suppress deprecated-declarations via CFLAGS.
+  # Drop -arch arm64 -arch x86_64: Conan manages the target arch itself and
+  # universal2 fat binaries are not compatible with single-arch Conan builds.
+  export CC="clang"
+  TEST_CFLAGS="-Og -g -fPIC"
+  EXTRA_CFLAGS="-Wall -Wextra -Wno-deprecated-declarations -DLXML_DEBUG_ATOMICS=1"
 fi
 
 # Log versions in use
