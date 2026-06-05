@@ -8,8 +8,6 @@ LXMLVERSION:=$(shell $(PYTHON) -c 'import re; print(re.findall(r"__version__\s*=
 PYTHON_WITH_CYTHON?=$(shell $(PYTHON)  -c 'import Cython.Build.Dependencies' >/dev/null 2>/dev/null && echo " --with-cython" || true)
 CYTHON_WITH_COVERAGE?=$(shell $(PYTHON) -c 'import Cython.Coverage; import sys; assert not hasattr(sys, "pypy_version_info")' >/dev/null 2>/dev/null && echo " --coverage" || true)
 
-BUILD_COMMAND=setup.py $(SETUPFLAGS) build_ext $(PYTHON_WITH_CYTHON) --warnings $(subst --,--with-,$(CYTHON_WITH_COVERAGE)) -j7
-
 PYTHON_BUILD_VERSION ?= *
 MANYLINUX_LIBXML2_VERSION=2.14.6
 MANYLINUX_LIBXSLT_VERSION=1.1.43
@@ -35,27 +33,26 @@ MANYLINUX_IMAGES= \
 
 all: inplace
 
-# Build in-place
+# Build and install into the current environment (used by doc targets and tests)
 inplace:
-	$(PYTHON) $(BUILD_COMMAND) -i
+	$(PYTHON) -m pip install -q .
 
 tsan:
 	CFLAGS="$$CFLAGS $(TSAN_FLAGS)" \
 		TSAN_OPTIONS="suppressions=tools/tsan.supp" \
-		$(PYTHON) $(BUILD_COMMAND) -i
+		$(PYTHON) -m pip install -q .
 
 rebuild-sdist: require-cython
 	rm -f dist/lxml-$(LXMLVERSION).tar.gz
-	find src -name '*.c' -exec rm -f {} \;
 	$(MAKE) dist/lxml-$(LXMLVERSION).tar.gz
 
 dist/lxml-$(LXMLVERSION).tar.gz:
-	$(PYTHON) setup.py $(SETUPFLAGS) sdist $(PYTHON_WITH_CYTHON)
+	$(PYTHON) -m build --sdist --no-isolation
 
 sdist: dist/lxml-$(LXMLVERSION).tar.gz
 
 build:
-	$(PYTHON) setup.py $(SETUPFLAGS) build $(PYTHON_WITH_CYTHON) --warnings
+	$(PYTHON) -m pip install -q .
 
 require-cython:
 	@[ -n "$(PYTHON_WITH_CYTHON)" ] || { \
