@@ -39,7 +39,8 @@ if hasattr(ElementTree, 'VERSION'):
 else:
     ET_VERSION = (0,0,0)
 
-DOC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'doc')
+DOC_DIR = os.environ.get('LXML_DOC_DIR') or \
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'doc')
 
 
 def filter_by_version(test_class, version_dict, current_version):

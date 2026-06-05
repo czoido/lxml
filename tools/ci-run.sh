@@ -73,6 +73,7 @@ GITHUB_API_TOKEN="${SAVED_GITHUB_API_TOKEN}" \
 # Run tests
 echo "Running the tests ..."
 GITHUB_API_TOKEN="${SAVED_GITHUB_API_TOKEN}" \
+      LXML_DOC_DIR="$(pwd)/doc" \
       PYTHONUNBUFFERED=x \
       make test || exit 1
 

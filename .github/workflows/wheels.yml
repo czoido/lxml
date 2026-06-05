@@ -152,6 +152,18 @@ jobs:
         uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
         with:
           only: ${{ matrix.only }}
+        env:
+          CIBW_BUILD_VERBOSITY: 2
+
+      - name: Upload build logs on failure
+        if: failure() && runner.os == 'Windows'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build-logs-${{ matrix.only }}
+          path: |
+            C:\Users\runneradmin\AppData\Local\Temp\tmp*\conan_out\build\**\*.log
+            C:\Users\runneradmin\AppData\Local\Temp\tmp*\conan_out\build\CMakeFiles\*.log
+          if-no-files-found: ignore
 
       # - name: Build faster Linux wheels
       #   # also build wheels with the most recent manylinux images and gcc
