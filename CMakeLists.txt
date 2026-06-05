@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(lxml LANGUAGES C)
 
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module Development)
 find_package(LibXml2 REQUIRED)
 find_package(LibXslt REQUIRED)
 
@@ -53,6 +53,12 @@ function(cython_add_module target pyx_file)
     target_link_libraries(${target} PRIVATE LibXml2::LibXml2 LibXslt::LibXslt)
     if(TARGET LibXslt::LibExslt)
         target_link_libraries(${target} PRIVATE LibXslt::LibExslt)
+    endif()
+    # On Windows, Python3::Module may not carry the import lib for some Python
+    # distributions (e.g. NuGet ARM64). Link Python3::Python explicitly to ensure
+    # python3XX.lib is resolved.
+    if(WIN32 AND TARGET Python3::Python)
+        target_link_libraries(${target} PRIVATE Python3::Python)
     endif()
     # Cython-generated code uses deprecated symbols and implicit function declarations
     # that clang 16+ treats as hard errors in C99 mode regardless of -w.
