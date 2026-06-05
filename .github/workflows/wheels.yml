@@ -153,7 +153,7 @@ jobs:
         with:
           only: ${{ matrix.only }}
         env:
-          CIBW_BUILD_VERBOSITY: 2
+          CIBW_BUILD_VERBOSITY: 3
 
       - name: Upload build logs on failure
         if: failure() && runner.os == 'Windows'

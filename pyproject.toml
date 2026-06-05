@@ -22,7 +22,7 @@ extra-profile = "conan/platform_cmake.profile"
 packages = ["src/lxml"]
 
 [tool.cibuildwheel]
-build-verbosity = 1
+build-verbosity = 3
 # Reduced matrix while porting: cp312 on Windows only (AMD64 + ARM64).
 # Re-enable once core build is stable on all platforms.
 build = "cp312-win_amd64 cp312-win_arm64"

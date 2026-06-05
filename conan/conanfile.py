@@ -19,8 +19,8 @@ class LxmlConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure()
-        cmake.build()
+        cmake.configure(cli_args=["--log-level=VERBOSE"])
+        cmake.build(cli_args=["--verbose"])
 
     def package(self):
         cmake = CMake(self)
