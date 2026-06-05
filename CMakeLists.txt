@@ -6,8 +6,9 @@ find_package(LibXml2 REQUIRED)
 find_package(LibXslt REQUIRED)
 
 get_filename_component(_py_bin_dir ${Python3_EXECUTABLE} DIRECTORY)
-find_program(CYTHON_EXECUTABLE NAMES cython cython3
-    HINTS ${_py_bin_dir}
+# On Windows pip installs scripts in Scripts/, on Unix in the same dir as python.
+find_program(CYTHON_EXECUTABLE NAMES cython cython3 cython.exe
+    HINTS ${_py_bin_dir} ${_py_bin_dir}/Scripts
     REQUIRED
 )
 
