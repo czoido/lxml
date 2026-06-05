@@ -124,7 +124,7 @@ ftest_inplace: inplace
 apidoc: apidocclean inplace
 	@[ -x "`command -v sphinx-apidoc`" ] \
 		&& (echo "Generating API docs ..." && \
-			PYTHONPATH=src:$(PYTHONPATH) sphinx-apidoc -e -P -T -d1 -o doc/api src/lxml \
+			$(PYTHONPATH) sphinx-apidoc -e -P -T -d1 -o doc/api src/lxml \
 				"*includes" "*tests" "*pyclasslookup.py" "*usedoctest.py" "*html/_html5builder.py" \
 				 "*html/_diff*" "*html/_setmixin*" \
 				"*.so" "*.pyd") \
@@ -137,7 +137,7 @@ apihtml: apidoc inplace
 		|| (echo "not generating Sphinx autodoc API documentation")
 
 website: inplace docclean
-	PYTHONPATH=src:$(PYTHONPATH) $(PYTHON) doc/mkhtml.py doc/html . ${LXMLVERSION}
+	$(PYTHONPATH) $(PYTHON) doc/mkhtml.py doc/html . ${LXMLVERSION}
 
 html: apihtml website s5
 
