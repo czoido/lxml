@@ -14,24 +14,22 @@ on:
   push:
     paths:
       - .github/workflows/wheels.yml
-      - .github/workflows/cache_libs.yml
       - requirements.txt
       - pyproject.toml
       - MANIFEST.in
       - Makefile
-      - setup*
-      - build*
+      - CMakeLists.txt
+      - conan/**
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/wheels.yml
-      - .github/workflows/cache_libs.yml
       - requirements.txt
       - pyproject.toml
       - MANIFEST.in
       - Makefile
-      - setup*
-      - build*
+      - CMakeLists.txt
+      - conan/**
   workflow_dispatch:
 
 concurrency:
@@ -42,10 +40,6 @@ permissions: {}
 
 
 jobs:
-  cache_libs:
-    uses: ./.github/workflows/cache_libs.yml
-    secrets: inherit
-
   sdist:
     runs-on: ubuntu-24.04
 
@@ -120,16 +114,8 @@ jobs:
 
   build_wheels:
     name: Build for ${{ matrix.only }}
-    needs: [ cache_libs, generate-wheels-matrix ]
+    needs: [ generate-wheels-matrix ]
     runs-on: ${{ matrix.os }}
-
-    env:
-      LXML_CSTD: "c11"
-      STATIC_DEPS: "true"
-      ZLIB_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_ZLIB_VERSION || needs.cache_libs.outputs.ZLIB_VERSION }}
-      LIBICONV_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_LIBICONV_VERSION || needs.cache_libs.outputs.LIBICONV_VERSION }}
-      LIBXML2_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_LIBXML2_VERSION || needs.cache_libs.outputs.LIBXML2_VERSION }}
-      LIBXSLT_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_LIBXSLT_VERSION || needs.cache_libs.outputs.LIBXSLT_VERSION }}
 
     strategy:
       fail-fast: false
@@ -139,15 +125,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-      - name: Cache [libs]
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: |
-            libs/*.xz
-            libs/*.gz
-            libs/*.zip
-          key: libs-${{ runner.os }}-${{ contains(matrix.only, 'win32') && 'i686' || runner.arch }}-${{ env.LIBXML2_VERSION }}-${{ env.LIBXSLT_VERSION }}-${{ env.LIBICONV_VERSION }}-${{ env.ZLIB_VERSION }}
 
       - name: Set up QEMU
         if: runner.os == 'Linux' && !(endsWith(matrix.platform, 'x86_64') || endsWith(matrix.platform, 'i686') || endsWith(matrix.platform, 'aarch64'))
@@ -161,7 +138,7 @@ jobs:
         with:
           max-size: 100M
           create-symlink: true
-          key: ccache-${{ matrix.platform }}-${{ env.LIBXML2_VERSION }}-${{ env.LIBXSLT_VERSION }}-${{ env.LIBICONV_VERSION }}-${{ env.ZLIB_VERSION }}
+          key: ccache-${{ matrix.platform }}
 
       - name: Set up ccache host directory
         if: runner.os == 'Linux'
@@ -221,17 +198,10 @@ jobs:
 
   build_abi3_wheels:
     name: (disabled) Build abi3 wheels on ${{ matrix.os }}
-    needs: [ cache_libs ]
     runs-on: ${{ matrix.os }}
 
     # The Limited API is not currently capable enough to support lxml's proxy back-references.
     if: false
-
-    env:
-      ZLIB_VERSION: ${{ needs.cache_libs.outputs.ZLIB_VERSION }}
-      LIBICONV_VERSION: ${{ needs.cache_libs.outputs.LIBICONV_VERSION }}
-      LIBXML2_VERSION: ${{ needs.cache_libs.outputs.LIBXML2_VERSION }}
-      LIBXSLT_VERSION: ${{ needs.cache_libs.outputs.LIBXSLT_VERSION }}
 
     strategy:
       fail-fast: false
@@ -247,15 +217,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-      - name: Cache [libs]
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: |
-            libs/*.xz
-            libs/*.gz
-            libs/*.zip
-          key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.LIBXML2_VERSION }}-${{ env.LIBXSLT_VERSION }}
 
       - name: Set up QEMU
         if: runner.os == 'Linux' && !(endsWith(matrix.platform, 'x86_64') || endsWith(matrix.platform, 'i686') || endsWith(matrix.platform, 'aarch64'))

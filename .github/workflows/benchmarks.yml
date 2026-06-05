@@ -6,17 +6,15 @@ on:
       - 'src/**'
       - 'benchmark/**'
       - '.github/workflows/benchmarks.yml'
-      - '.github/workflows/cache_libs.yml'
-      - setup*.py
-      - build*.py
+      - CMakeLists.txt
+      - conan/**
   pull_request:
     paths:
       - 'src/**'
       - 'benchmark/**'
       - '.github/workflows/benchmarks.yml'
-      - '.github/workflows/cache_libs.yml'
-      - setup*.py
-      - build*.py
+      - CMakeLists.txt
+      - conan/**
   workflow_dispatch:
 
 concurrency:
@@ -28,12 +26,7 @@ permissions:
 
 
 jobs:
-  cache_libs:
-    uses: ./.github/workflows/cache_libs.yml
-    secrets: inherit
-
   benchmarks:
-    needs: [ cache_libs ]
     runs-on: ubuntu-latest
 
     # The benchmarks are currently inconclusive and take a very long time to run.
@@ -44,12 +37,7 @@ jobs:
       CCACHE_SLOPPINESS: "pch_defines,time_macros"
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
-      STATIC_DEPS: true
       LXML_CSTD: c11
-      ZLIB_VERSION: ${{ needs.cache_libs.outputs.ZLIB_VERSION }}
-      LIBICONV_VERSION: ${{ needs.cache_libs.outputs.LIBICONV_VERSION }}
-      LIBXML2_VERSION: ${{ needs.cache_libs.outputs.LIBXML2_VERSION }}
-      LIBXSLT_VERSION: ${{ needs.cache_libs.outputs.LIBXSLT_VERSION }}
 
     steps:
       - name: Checkout repo
@@ -64,17 +52,7 @@ jobs:
         with:
           max-size: 150M
           create-symlink: true
-          key: ${{ runner.os }}-benchmarks-${{ env.LIBXML2_VERSION }}-${{ env.LIBXSLT_VERSION }}
-
-      - name: Cache [libs]
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        if: env.STATIC_DEPS
-        with:
-          path: |
-            libs/*.xz
-            libs/*.gz
-            libs/*.zip
-          key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.LIBXML2_VERSION }}-${{ env.LIBXSLT_VERSION }}
+          key: ${{ runner.os }}-benchmarks
 
       - name: Setup Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0

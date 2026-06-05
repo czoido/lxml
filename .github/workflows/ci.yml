@@ -7,7 +7,6 @@ on:
       - '!.github/**'
       - '!benchmark/**'
       - '.github/workflows/ci.yml'
-      - '.github/workflows/cache_libs.yml'
       - '.github/workflows/compiled_python.yml'
   pull_request:
     paths:
@@ -15,7 +14,6 @@ on:
       - '!.github/**'
       - '!benchmark/**'
       - '.github/workflows/ci.yml'
-      - '.github/workflows/cache_libs.yml'
       - '.github/workflows/compiled_python.yml'
   workflow_dispatch:
 
@@ -28,13 +26,7 @@ permissions:
 
 
 jobs:
-  cache_libs:
-    uses: ./.github/workflows/cache_libs.yml
-    secrets: inherit
-
   ci:
-    needs: [ cache_libs ]
-
     env:
       OS_NAME: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
@@ -46,10 +38,6 @@ jobs:
       CCACHE_COMPRESS: 1
       CCACHE_MAXSIZE: "100M"
       LXML_CSTD: c11
-      ZLIB_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_ZLIB_VERSION || needs.cache_libs.outputs.ZLIB_VERSION }}
-      LIBICONV_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_LIBICONV_VERSION || needs.cache_libs.outputs.LIBICONV_VERSION }}
-      LIBXML2_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_LIBXML2_VERSION || needs.cache_libs.outputs.LIBXML2_VERSION }}
-      LIBXSLT_VERSION: ${{ startsWith(matrix.os, 'windows-') && needs.cache_libs.outputs.WIN_LIBXSLT_VERSION || needs.cache_libs.outputs.LIBXSLT_VERSION }}
 
     strategy:
       # Allows for matrix sub-jobs to fail without canceling the rest
@@ -60,14 +48,11 @@ jobs:
       # Required parameters:
       #  os                  the os to run on
       #  python-version      the python version to use
-      #  backend             the backend to use
       #  env                 any additional env variables. Set to '{}' for none
       # Optional parameters:
       #  allowed_failure     whether the job is allowed to fail
       #  extra_hash          extra hash str to differentiate from other caches with similar name (must always start with '-')
       matrix:
-        # Tests [amd64]
-        #
         os:
           - "ubuntu-22.04"
           - "ubuntu-22.04-arm"
@@ -86,144 +71,43 @@ jobs:
           - "3.15-dev"
           - "3.15t-dev"
         env:
-          - { STATIC_DEPS: true }
-          - { STATIC_DEPS: false }
+          - {}
 
         include:
-          #- os: ubuntu-22.04
-          #  python-version: "3.15-dev"
-          #  allowed_failure: true
-
           - os: ubuntu-latest
             python-version: "3.9"
-            env: {STATIC_DEPS: true, WITH_REFNANNY: true}
+            env: {WITH_REFNANNY: true}
             extra_hash: "-refnanny"
           - os: ubuntu-latest
             python-version: "3.13"
-            env: {STATIC_DEPS: true, WITH_REFNANNY: true}
+            env: {WITH_REFNANNY: true}
             extra_hash: "-refnanny"
 
           # Coverage setup
           - os: ubuntu-latest
             python-version: "3.10"
-            env: { COVERAGE: true, STATIC_DEPS: true }
+            env: { COVERAGE: true }
             extra_hash: "-coverage"
           - os: ubuntu-latest
             python-version: "3.10"
-            env: { STATIC_DEPS: false, EXTRA_DEPS: "docutils pygments sphinx sphinx_book_theme" }
+            env: { EXTRA_DEPS: "docutils pygments sphinx sphinx_book_theme" }
             extra_hash: "-docs"
 
-          # Old library setup with minimum version requirements
-          - os: ubuntu-latest
-            python-version: "3.12"
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: 2.9.2,
-              LIBXSLT_VERSION: 1.1.27,
-            }
-            extra_hash: "-oldlibs29"
-          - os: ubuntu-latest
-            python-version: "3.12"
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: 2.10.3,
-              LIBXSLT_VERSION: 1.1.37,
-            }
-            extra_hash: "-oldlibs210"
-          - os: ubuntu-latest
-            python-version: "3.12"
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: 2.11.8,
-              LIBXSLT_VERSION: 1.1.37,
-            }
-            extra_hash: "-oldlibs211"
-          - os: ubuntu-latest
-            python-version: "3.12"
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: 2.12.10,
-              LIBXSLT_VERSION: 1.1.37,
-            }
-            extra_hash: "-oldlibs212"
-          - os: ubuntu-latest
-            python-version: "3.12"
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: 2.13.7,
-              LIBXSLT_VERSION: 1.1.40,
-            }
-            extra_hash: "-oldlibs213"
-
-          - os: ubuntu-latest
-            python-version: "3.12"
-            #allowed_failure: true
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: "",
-              LIBXSLT_VERSION: "",
-            }
-            extra_hash: "-latestlibs"
-          - os: ubuntu-latest
-            python-version: pypy-3.11
-            #python-version: pypy-3.11
-            allowed_failure: true
-            env: {
-              STATIC_DEPS: true,
-              LIBXML2_VERSION: "",
-              LIBXSLT_VERSION: "",
-            }
-            extra_hash: "-latestlibs"
-
-          - os: ubuntu-latest
-            python-version: "3.12"
-            #allowed_failure: true
-            env: {
-              STATIC_DEPS: "true",
-              LIBXML2_VERSION: "",
-              LIBXSLT_VERSION: "",
-              WITHOUT_ZLIB: "true",
-            }
-            extra_hash: "-nozlib"
-
-          # Ubuntu sub-jobs:
-          # ================
-          # Pypy
+          # Ubuntu sub-jobs: Pypy
           - os: ubuntu-latest
             python-version: pypy-3.9
-            env: { STATIC_DEPS: false }
+            env: {}
             allowed_failure: true
           - os: ubuntu-latest
             python-version: pypy-3.10
-            env: { STATIC_DEPS: false }
+            env: {}
             allowed_failure: true
           - os: ubuntu-latest
             python-version: pypy-3.11
-            #python-version: pypy-3.11
-            env: { STATIC_DEPS: false }
+            env: {}
             allowed_failure: true
 
-          # MacOS sub-jobs
-          # ==============
-          #- os: macos-latest
-          #  allowed_failure: true   # Unicode parsing fails in Py3
-
-          # Legacy jobs
-          # ===========
-          #- os: ubuntu-22.04
-          #  python-version: "3.7"
-          #  env: { STATIC_DEPS: true }
-          #- os: ubuntu-22.04
-          #  python-version: "3.7"
-          #  env: { STATIC_DEPS: false }
-
         exclude:
-          # Windows sub-jobs
-          # ==============
-          - os: windows-2022
-            env: { STATIC_DEPS: false }  # always static
-          - os: windows-11-arm
-            env: { STATIC_DEPS: false }  # always static
           - os: windows-11-arm
             python-version: "3.9"  # setup-python only supports 3.11+ on windows arm
           - os: windows-11-arm
@@ -258,17 +142,7 @@ jobs:
         with:
           max-size: 100M
           create-symlink: true
-          key: ${{ runner.os }}-${{ runner.arch }}-ccache${{ matrix.extra_hash }}-${{ matrix.python-version }}-${{ matrix.env.STATIC_DEPS }}-${{ matrix.env.LIBXML2_VERSION || env.LIBXML2_VERSION }}-${{ matrix.env.LIBXSLT_VERSION || env.LIBXSLT_VERSION }}
-
-      - name: Cache [libs]
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        if: matrix.env.STATIC_DEPS
-        with:
-          path: |
-            libs/*.xz
-            libs/*.gz
-            libs/*.zip
-          key: libs-${{ runner.os }}-${{ runner.arch }}-${{ env.LIBXML2_VERSION }}-${{ env.LIBXSLT_VERSION }}-${{ env.LIBICONV_VERSION }}-${{ env.ZLIB_VERSION }}
+          key: ${{ runner.os }}-${{ runner.arch }}-ccache${{ matrix.extra_hash }}-${{ matrix.python-version }}
 
       - name: Run CI
         continue-on-error: ${{ matrix.allowed_failure || false }}
@@ -296,25 +170,15 @@ jobs:
           if-no-files-found: ignore
 
   pydebug:
-    needs: [ cache_libs ]
     uses: ./.github/workflows/compiled_python.yml
     with:
       name: pydebug
       freethreading: false
-      ZLIB_VERSION: ${{ needs.cache_libs.outputs.ZLIB_VERSION }}
-      LIBICONV_VERSION: ${{ needs.cache_libs.outputs.LIBICONV_VERSION }}
-      LIBXML2_VERSION: ${{ needs.cache_libs.outputs.LIBXML2_VERSION }}
-      LIBXSLT_VERSION: ${{ needs.cache_libs.outputs.LIBXSLT_VERSION }}
     secrets: inherit
 
   pydebug-ft:
-    needs: [ cache_libs ]
     uses: ./.github/workflows/compiled_python.yml
     with:
       name: pydebug
       freethreading: true
-      ZLIB_VERSION: ${{ needs.cache_libs.outputs.ZLIB_VERSION }}
-      LIBICONV_VERSION: ${{ needs.cache_libs.outputs.LIBICONV_VERSION }}
-      LIBXML2_VERSION: ${{ needs.cache_libs.outputs.LIBXML2_VERSION }}
-      LIBXSLT_VERSION: ${{ needs.cache_libs.outputs.LIBXSLT_VERSION }}
     secrets: inherit
