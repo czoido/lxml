@@ -5104,7 +5104,7 @@ class _XIncludeTestCase(HelperTestCase):
                           root.text)
 
     def test_xinclude(self):
-        tree = etree.parse(fileInTestDir('include/test_xinclude.xml'))
+        tree = etree.parse(fileUrlInTestDir('include/test_xinclude.xml'))
         self.assertNotEqual(
             'a',
             tree.getroot()[1].tag)
@@ -5178,7 +5178,7 @@ class _XIncludeTestCase(HelperTestCase):
         parser = etree.XMLParser(load_dtd=True)
         parser.resolvers.add(res_instance)
 
-        tree = etree.parse(fileInTestDir('include/test_xinclude.xml'),
+        tree = etree.parse(fileUrlInTestDir('include/test_xinclude.xml'),
                            parser=parser)
 
         self.include(tree)
